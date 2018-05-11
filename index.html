@@ -1,0 +1,98 @@
+<!DOCTYPE HTML>
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>video</title>
+  <link rel="stylesheet" href="css/font-awesome.min.css" type="text/css" />
+  <style>
+      * {
+         margin: 0;
+         padding: 0;
+      }
+      html, body {
+         width: 100%;
+         height: 100%;
+      }
+      html {
+         display: table;
+      }
+      body {
+         display: table-row;
+      }
+      div {
+         display: table-cell;
+         text-align: center;
+         vertical-align: middle;
+      }
+      button {
+         background-color: transparent;
+         border-radius: 50%;
+         font-size: 96px;
+         border: 5px solid black;
+         width: 136px;
+         height: 136px;
+         padding: 10px 10px 10px 30px;
+         outline: none;
+         cursor: pointer;
+      }
+      video {
+         display: none;
+         cursor: none;
+      }
+      video::-webkit-media-controls-enclosure {
+         display:none !important;
+      }
+  </style>
+</head>
+
+<body>
+   <div><button><i class="fa fa-play"></i></button></div>
+   <video muted="true"></video>
+
+   <script src="//code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+   <script src="jquery.fullscreen.js" type="text/javascript"></script>
+   <script>
+      $(function(){
+         var $count = 1;
+         var $playlist;
+
+         $.post('_playlist.php',function(data){
+            $playlist = data;
+            $('video').attr('src','admin/upload/'+$playlist[0][0])
+                      .attr('data-title',$playlist[0][1]);
+         },'json');
+
+         $('button').on('click',function(){
+            $('video').fullScreen(true).get(0).play();
+         });
+
+         $(document).bind("fullscreenchange", function(e) {
+            if (!$('video').fullScreen()) $('video').hide().get(0).pause();
+         });
+
+         $('video').on('ended',function(){
+            if ($count == $playlist.length) {
+               $.post('_playlist.php',function(data){
+                  $count = 1;
+                  $playlist = data;
+                  $('video').attr('src','admin/upload/'+$playlist[0][0])
+                            .attr('data-title',$playlist[0][1]).get(0).play();
+               },'json');
+            } else {
+               $('video').attr('src','admin/upload/'+$playlist[$count][0])
+                         .attr('data-title',$playlist[$count][1]).get(0).play();
+               $count++;
+            };
+         });
+
+         $('video').on('playing',function(){
+            $.post('_current.php',{num:1,cap:$('video').attr('data-title')});
+            //$('video').get(0).currentTime;
+         });
+      });
+   </script>
+</body>
+
+</html>
